@@ -63,7 +63,7 @@ def yield_tokens(data_iter: Iterable, language: str) -> List[str]:
         yield token_transform[language](data_sample[language_index[language]])
 
 # Define special symbols and indices
-UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX = 0, 1, 2, 3
+UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX = 0, 320, 319, 321
 # Make sure the tokens are in order of their indices to properly insert them in vocab
 special_symbols = ['<unk>', '<pad>', '<bos>', '<eos>']
 
@@ -354,7 +354,7 @@ def evaluate(model):
 #
 
 from timeit import default_timer as timer
-NUM_EPOCHS = 10
+NUM_EPOCHS = 1
 
 for epoch in range(1, NUM_EPOCHS+1):
     start_time = timer()
