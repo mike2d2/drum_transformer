@@ -60,7 +60,7 @@ class DrumsAccompanimentDataset(Dataset):
 
         if len(accomp_events) < seq_len:
             accomp_tensor[len(accomp_events)] = TOKEN_END
-            accomp_tensor[:len(accomp_events)] = accomp_events
+            accomp_tensor[1:len(accomp_events)] = accomp_events
         else:
             accomp_tensor[seq_len-1] = TOKEN_END
             accomp_tensor[1:seq_len-1] = accomp_events[1:seq_len-1]

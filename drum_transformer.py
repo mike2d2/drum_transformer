@@ -354,7 +354,7 @@ def evaluate(model):
 #
 
 from timeit import default_timer as timer
-NUM_EPOCHS = 1
+NUM_EPOCHS = 10
 
 for epoch in range(1, NUM_EPOCHS+1):
     start_time = timer()
@@ -398,7 +398,7 @@ def translate(model: torch.nn.Module, src_sentence: str):
     num_tokens = src.shape[0]
     src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool)
     tgt_tokens = greedy_decode(
-        model,  src, src_mask, max_len=num_tokens + 5, start_symbol=BOS_IDX).flatten()
+        model,  src, src_mask, max_len=num_tokens + 5, start_symbol=319).flatten()
     return " ".join(vocab_transform[TGT_LANGUAGE].lookup_tokens(list(tgt_tokens.cpu().numpy()))).replace("<bos>", "").replace("<eos>", "")
 
 
