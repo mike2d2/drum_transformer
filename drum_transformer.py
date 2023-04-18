@@ -23,6 +23,7 @@ This tutorial shows:
 #
 
 import random
+from preprocessing.etl import MidiTokenizer
 from torchtext.data.utils import get_tokenizer
 from torchtext.vocab import build_vocab_from_iterator
 from torchtext.datasets import multi30k, Multi30k
@@ -104,6 +105,7 @@ import torch.nn as nn
 from torch.nn import Transformer
 import math
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print("Using device: ",DEVICE)
 
 # helper Module that adds positional encoding to the token embedding to introduce a notion of word order.
 class PositionalEncoding(nn.Module):
@@ -389,6 +391,14 @@ def greedy_decode(model, src, src_mask, max_len, start_symbol):
     return ys
 
 
+saved_midi_path = 'saved_midi/predicted.mid'
+
+def detokenize(translated_drums):
+    tokenizer = MidiTokenizer()
+
+    tokenizer.compile_drums(translated_drums, ticks_per_beat=120, out_path=saved_midi_path)
+
+
 # actual function to translate input sentence into target language
 def translate(model: torch.nn.Module, src_sentence: str):
     model.eval()
@@ -399,7 +409,9 @@ def translate(model: torch.nn.Module, src_sentence: str):
     src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool)
     tgt_tokens = greedy_decode(
         model,  src, src_mask, max_len=num_tokens + 5, start_symbol=319).flatten()
-    return " ".join(vocab_transform[TGT_LANGUAGE].lookup_tokens(list(tgt_tokens.cpu().numpy()))).replace("<bos>", "").replace("<eos>", "")
+    
+    detokenize(tgt_tokens)
+    # return " ".join(vocab_transform[TGT_LANGUAGE].lookup_tokens(list(tgt_tokens.cpu().numpy()))).replace("<bos>", "").replace("<eos>", "")
 
 
 ######################################################################
