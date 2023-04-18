@@ -22,6 +22,7 @@ This tutorial shows:
 # To access torchtext datasets, please install torchdata following instructions at https://github.com/pytorch/data.
 #
 
+import random
 from torchtext.data.utils import get_tokenizer
 from torchtext.vocab import build_vocab_from_iterator
 from torchtext.datasets import multi30k, Multi30k
@@ -321,7 +322,6 @@ def train_epoch(model, optimizer):
 
         optimizer.step()
         losses += loss.item()
-        print(loss.item())
 
     return losses / len(list(train_dataloader))
 
@@ -354,13 +354,14 @@ def evaluate(model):
 #
 
 from timeit import default_timer as timer
-NUM_EPOCHS = 18
+NUM_EPOCHS = 1
 
 for epoch in range(1, NUM_EPOCHS+1):
     start_time = timer()
     train_loss = train_epoch(transformer, optimizer)
     end_time = timer()
     # val_loss = evaluate(transformer)
+    val_loss = 0
     print((f"Epoch: {epoch}, Train loss: {train_loss:.3f}, Val loss: {val_loss:.3f}, "f"Epoch time = {(end_time - start_time):.3f}s"))
 
 
@@ -391,7 +392,9 @@ def greedy_decode(model, src, src_mask, max_len, start_symbol):
 # actual function to translate input sentence into target language
 def translate(model: torch.nn.Module, src_sentence: str):
     model.eval()
-    src = text_transform[SRC_LANGUAGE](src_sentence).view(-1, 1)
+    # grab random song from training set
+    # src = text_transform[SRC_LANGUAGE](src_sentence).view(-1, 1)
+    src = src_sentence.view(-1,1)
     num_tokens = src.shape[0]
     src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool)
     tgt_tokens = greedy_decode(
@@ -401,8 +404,16 @@ def translate(model: torch.nn.Module, src_sentence: str):
 
 ######################################################################
 #
+print('Randomly selecting song')
+# sentence = tokenize(sentence, en_freq_list, lang_model)
+dataset_path = 'data_cleaned/default_1000_318.txt'
+vocab_size = 318
+max_seq = 2048
+train_dataset = create_accomp_drum_dataset(dataset_path, max_seq=2048, vocab_size=vocab_size)
 
-print(translate(transformer, "Eine Gruppe von Menschen steht vor einem Iglu ."))
+rand_index = random.randint(0, 1000)
+accomp, drums = train_dataset[rand_index]
+print(translate(transformer, accomp))
 
 
 ######################################################################

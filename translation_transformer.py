@@ -344,7 +344,7 @@ def evaluate(model):
 #
 
 from timeit import default_timer as timer
-NUM_EPOCHS = 18
+NUM_EPOCHS = 1
 
 for epoch in range(1, NUM_EPOCHS+1):
     start_time = timer()
