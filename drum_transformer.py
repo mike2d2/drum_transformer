@@ -213,8 +213,8 @@ def create_mask(src, tgt):
 #
 torch.manual_seed(0)
 
-SRC_VOCAB_SIZE = len(vocab_transform[SRC_LANGUAGE])
-TGT_VOCAB_SIZE = len(vocab_transform[TGT_LANGUAGE])
+SRC_VOCAB_SIZE = 322 #len(vocab_transform[SRC_LANGUAGE])
+TGT_VOCAB_SIZE = 322 #len(vocab_transform[TGT_LANGUAGE])
 EMB_SIZE = 512
 NHEAD = 8
 FFN_HID_DIM = 512
