@@ -321,6 +321,7 @@ def train_epoch(model, optimizer):
 
         optimizer.step()
         losses += loss.item()
+        print(loss.item())
 
     return losses / len(list(train_dataloader))
 
