@@ -1,2 +1,4 @@
 data_cleaned/
 __pycache__/
+saved_midi/
+saved_models/
