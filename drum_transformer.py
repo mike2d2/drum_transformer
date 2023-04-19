@@ -288,6 +288,11 @@ def collate_fn(batch):
 # Let's define training and evaluation loop that will be called for each
 # epoch.
 #
+saved_midi_path = 'saved_midi/'
+
+def detokenize(translated_drums, filename):
+    tokenizer = MidiTokenizer()
+    tokenizer.compile_drums(translated_drums, ticks_per_beat=120, out_path=f'{saved_midi_path}{filename}.mid')
 
 from torch.utils.data import DataLoader
 
@@ -300,10 +305,13 @@ def train_epoch(model, optimizer):
     # train_dataloader = DataLoader(train_iter, batch_size=BATCH_SIZE, collate_fn=collate_fn)
     dataset_path = './data_cleaned/default_1000_318.txt'
     train_dataset = create_accomp_drum_dataset(dataset_path, max_seq=2048, vocab_size=318)
+    # detokenize(train_dataset[random.randint(1,1000)][1], f'drums')
+    
     train_dataloader = DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=0) # removed n_workers, shuffle=True caused index to be >1000 may need different seed?
 
 
     for src,tgt in train_dataloader:
+
         src = src.to(DEVICE)
         tgt = tgt.to(DEVICE)
 
@@ -356,13 +364,15 @@ def evaluate(model):
 #
 
 from timeit import default_timer as timer
-NUM_EPOCHS = 1
+NUM_EPOCHS = 100
 
 for epoch in range(1, NUM_EPOCHS+1):
     start_time = timer()
     train_loss = train_epoch(transformer, optimizer)
     end_time = timer()
     # val_loss = evaluate(transformer)
+    # Save the trained model
+    torch.save(transformer, 'saved_models/model.pt')
     val_loss = 0
     print((f"Epoch: {epoch}, Train loss: {train_loss:.3f}, Val loss: {val_loss:.3f}, "f"Epoch time = {(end_time - start_time):.3f}s"))
 
@@ -391,12 +401,8 @@ def greedy_decode(model, src, src_mask, max_len, start_symbol):
     return ys
 
 
-saved_midi_path = 'saved_midi/predicted.mid'
 
-def detokenize(translated_drums):
-    tokenizer = MidiTokenizer()
 
-    tokenizer.compile_drums(translated_drums, ticks_per_beat=120, out_path=saved_midi_path)
 
 
 # actual function to translate input sentence into target language
@@ -408,24 +414,33 @@ def translate(model: torch.nn.Module, src_sentence: str):
     num_tokens = src.shape[0]
     src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool)
     tgt_tokens = greedy_decode(
-        model,  src, src_mask, max_len=num_tokens + 5, start_symbol=319).flatten()
+        model,  src, src_mask, max_len=num_tokens, start_symbol=319).flatten()
+    return tgt_tokens[1:num_tokens].tolist()
     
-    detokenize(tgt_tokens)
     # return " ".join(vocab_transform[TGT_LANGUAGE].lookup_tokens(list(tgt_tokens.cpu().numpy()))).replace("<bos>", "").replace("<eos>", "")
 
 
 ######################################################################
 #
-print('Randomly selecting song')
-# sentence = tokenize(sentence, en_freq_list, lang_model)
-dataset_path = 'data_cleaned/default_1000_318.txt'
-vocab_size = 318
-max_seq = 2048
-train_dataset = create_accomp_drum_dataset(dataset_path, max_seq=2048, vocab_size=vocab_size)
 
-rand_index = random.randint(0, 1000)
-accomp, drums = train_dataset[rand_index]
-print(translate(transformer, accomp))
+for i in range(10):
+    try:
+        print('Randomly selecting song')
+        # sentence = tokenize(sentence, en_freq_list, lang_model)
+        dataset_path = 'data_cleaned/default_1000_318.txt'
+        vocab_size = 318
+        max_seq = 2048
+        train_dataset = create_accomp_drum_dataset(dataset_path, max_seq=2048, vocab_size=vocab_size)
+
+        rand_index = random.randint(0, 1000)
+        accomp, drums = train_dataset[rand_index]
+        translated_drums = translate(transformer, accomp)
+        detokenize(translated_drums, f'translated_drums_{i}')
+        detokenize(drums, f'original_drums_{i}')
+    except:
+        print('error translating original drums back to midi')
+    
+
 
 
 ######################################################################
